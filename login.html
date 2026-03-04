@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Login LuzaGroup</title>
+  <link rel="stylesheet" href="TemplateData/style.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0b1020;
+      color: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .login-card {
+      background: rgba(9, 15, 30, 0.96);
+      border-radius: 12px;
+      padding: 24px 28px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+      width: 100%;
+      max-width: 360px;
+    }
+    .login-card h2 {
+      margin: 0 0 4px;
+      font-size: 22px;
+    }
+    .login-card p {
+      margin: 0 0 20px;
+      font-size: 14px;
+      color: #c3c8d4;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+    input {
+      width: 100%;
+      padding: 9px 10px;
+      border-radius: 6px;
+      border: 1px solid #3a425a;
+      background: #101727;
+      color: #f5f5f5;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+    input:focus {
+      outline: none;
+      border-color: #4aa3ff;
+      box-shadow: 0 0 0 1px rgba(74, 163, 255, 0.4);
+    }
+    button {
+      width: 100%;
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      border: none;
+      background: linear-gradient(135deg, #4aa3ff, #2f6df5);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .secondary {
+      background: transparent;
+      border: 1px solid #3a425a;
+      margin-top: 8px;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+    .message {
+      margin-top: 10px;
+      font-size: 13px;
+    }
+    .message.error {
+      color: #ff6b81;
+    }
+    .message.success {
+      color: #4fd18b;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <h2>Onboarding LuzaGroup</h2>
+    <p>Entre com seu e-mail corporativo para acessar o jogo.</p>
+
+    <form id="email-form">
+      <label for="email">E-mail (@luzagroup.com)</label>
+      <input type="email" id="email" required placeholder="seu.nome@luzagroup.com">
+      <button type="submit" id="send-code-btn">Gerar código</button>
+      <div id="email-message" class="message"></div>
+    </form>
+
+    <form id="code-form" class="hidden">
+      <label for="code">Código gerado</label>
+      <input type="text" id="code" required maxlength="6" placeholder="Ex: 123456">
+      <button type="submit">Confirmar e entrar</button>
+      <button type="button" class="secondary" id="back-button">Voltar e trocar e-mail</button>
+    </form>
+  </div>
+
+  <script>
+    (function () {
+      var emailForm = document.getElementById('email-form');
+      var codeForm = document.getElementById('code-form');
+      var emailInput = document.getElementById('email');
+      var codeInput = document.getElementById('code');
+      var emailMessage = document.getElementById('email-message');
+      var sendCodeBtn = document.getElementById('send-code-btn');
+      var backButton = document.getElementById('back-button');
+
+      var luzaRegex = /^[^@]+@luzagroup\.com$/i;
+      var currentCode = null;
+      var codeExpiresAt = 0;
+
+      emailForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        emailMessage.textContent = '';
+        emailMessage.className = 'message';
+
+        var email = (emailInput.value || '').trim();
+
+        if (!luzaRegex.test(email)) {
+          emailMessage.textContent = 'Use apenas e-mails @luzagroup.com';
+          emailMessage.classList.add('error');
+          return;
+        }
+
+        sendCodeBtn.disabled = true;
+        sendCodeBtn.textContent = 'Gerando...';
+
+        currentCode = String(Math.floor(100000 + Math.random() * 900000));
+        codeExpiresAt = Date.now() + 10 * 60 * 1000;
+
+        emailMessage.textContent =
+          'Código gerado (apenas para testes, normalmente seria enviado por e-mail): ' + currentCode;
+        emailMessage.classList.add('success');
+
+        emailForm.classList.add('hidden');
+        codeForm.classList.remove('hidden');
+
+        sendCodeBtn.disabled = false;
+        sendCodeBtn.textContent = 'Gerar código';
+      });
+
+      codeForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        if (!currentCode || Date.now() > codeExpiresAt) {
+          emailMessage.textContent = 'Código expirado. Gere um novo código.';
+          emailMessage.className = 'message error';
+          codeForm.classList.add('hidden');
+          emailForm.classList.remove('hidden');
+          return;
+        }
+
+        var entered = (codeInput.value || '').trim();
+        if (entered !== currentCode) {
+          emailMessage.textContent = 'Código incorreto.';
+          emailMessage.className = 'message error';
+          return;
+        }
+
+        // "Logged in": go to Unity game
+        window.location.href = 'index.html';
+      });
+
+      backButton.addEventListener('click', function () {
+        codeForm.classList.add('hidden');
+        emailForm.classList.remove('hidden');
+        emailMessage.textContent = '';
+        emailMessage.className = 'message';
+      });
+    })();
+  </script>
+</body>
+</html>
+
