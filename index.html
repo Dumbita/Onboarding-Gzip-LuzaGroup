@@ -7,118 +7,16 @@
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
     <style>
-      body {
-        margin: 0;
-        font-family: Arial, sans-serif;
-        background: #0b1020;
-        color: #f5f5f5;
-      }
-      #login-overlay {
-        position: fixed;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: radial-gradient(circle at top, #1f2a48 0, #050814 55%);
-        z-index: 10;
-      }
-      .login-card {
-        background: rgba(9, 15, 30, 0.96);
-        border-radius: 12px;
-        padding: 24px 28px;
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-        width: 100%;
-        max-width: 360px;
-      }
-      .login-card h2 {
-        margin: 0 0 4px;
-        font-size: 22px;
-      }
-      .login-card p {
-        margin: 0 0 20px;
-        font-size: 14px;
-        color: #c3c8d4;
-      }
-      label {
-        display: block;
-        font-size: 13px;
-        margin-bottom: 6px;
-      }
-      input {
-        width: 100%;
-        padding: 9px 10px;
-        border-radius: 6px;
-        border: 1px solid #3a425a;
-        background: #101727;
-        color: #f5f5f5;
-        box-sizing: border-box;
-        font-size: 14px;
-      }
-      input:focus {
-        outline: none;
-        border-color: #4aa3ff;
-        box-shadow: 0 0 0 1px rgba(74, 163, 255, 0.4);
-      }
-      button {
-        width: 100%;
-        margin-top: 12px;
-        padding: 10px 12px;
-        border-radius: 6px;
-        border: none;
-        background: linear-gradient(135deg, #4aa3ff, #2f6df5);
-        color: white;
-        font-weight: 600;
-        cursor: pointer;
-        font-size: 14px;
-      }
-      button:disabled {
-        opacity: 0.6;
-        cursor: default;
-      }
-      .secondary {
-        background: transparent;
-        border: 1px solid #3a425a;
-        margin-top: 8px;
-      }
-      .message {
-        margin-top: 10px;
-        font-size: 13px;
-      }
-      .message.error {
-        color: #ff6b81;
-      }
-      .message.success {
-        color: #4fd18b;
-      }
-      .hidden {
-        display: none;
-      }
+      body { margin: 0; font-family: Arial, sans-serif; background: #0b1020; color: #f5f5f5; }
     </style>
   </head>
   <body>
-    <!-- Simple email + code login, all client-side -->
-    <div id="login-overlay">
-      <div class="login-card">
-        <h2>Onboarding LuzaGroup</h2>
-        <p>Entre com seu e-mail corporativo para acessar o jogo.</p>
-
-        <form id="email-form">
-          <label for="email">E-mail (@luzagroup.com)</label>
-          <input type="email" id="email" required placeholder="seu.nome@luzagroup.com">
-          <button type="submit" id="send-code-btn">Gerar código</button>
-          <div id="email-message" class="message"></div>
-        </form>
-
-        <form id="code-form" class="hidden">
-          <label for="code">Código gerado</label>
-          <input type="text" id="code" required maxlength="6" placeholder="Ex: 123456">
-          <button type="submit">Confirmar e entrar</button>
-          <button type="button" class="secondary" id="back-button">Voltar e trocar e-mail</button>
-        </form>
-      </div>
-    </div>
-
-    <div id="unity-container" class="unity-desktop" style="display: none;">
+    <script>
+      if (!sessionStorage.getItem('luza_logged_in')) {
+        window.location.replace('login.html');
+      }
+    </script>
+    <div id="unity-container" class="unity-desktop">
       <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
       <div id="unity-loading-bar">
         <div id="unity-logo"></div>
@@ -126,7 +24,7 @@
           <div id="unity-progress-bar-full"></div>
         </div>
       </div>
-      <div id="unity-warning"> </div>
+      <div id="unity-warning"></div>
       <div id="unity-footer">
         <div id="unity-logo-title-footer"></div>
         <div id="unity-fullscreen-button"></div>
@@ -134,93 +32,7 @@
       </div>
     </div>
     <script>
-      // --------- Simple client-side "login" ---------
-      (function () {
-        var loginOverlay = document.getElementById('login-overlay');
-        var unityContainer = document.getElementById('unity-container');
-        var emailForm = document.getElementById('email-form');
-        var codeForm = document.getElementById('code-form');
-        var emailInput = document.getElementById('email');
-        var codeInput = document.getElementById('code');
-        var emailMessage = document.getElementById('email-message');
-        var sendCodeBtn = document.getElementById('send-code-btn');
-        var backButton = document.getElementById('back-button');
-
-        var luzaRegex = /^[^@]+@luzagroup\.com$/i;
-        var currentCode = null;
-        var codeExpiresAt = 0;
-
-        emailForm.addEventListener('submit', function (e) {
-          e.preventDefault();
-          emailMessage.textContent = '';
-          emailMessage.className = 'message';
-
-          var email = (emailInput.value || '').trim();
-
-          if (!luzaRegex.test(email)) {
-            emailMessage.textContent = 'Use apenas e-mails @luzagroup.com';
-            emailMessage.classList.add('error');
-            return;
-          }
-
-          sendCodeBtn.disabled = true;
-          sendCodeBtn.textContent = 'Gerando...';
-
-          // Generate 6-digit code client-side (for demo only)
-          currentCode = String(Math.floor(100000 + Math.random() * 900000));
-          codeExpiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
-
-          emailMessage.textContent =
-            'Código gerado (apenas para testes, normalmente seria enviado por e-mail): ' + currentCode;
-          emailMessage.classList.add('success');
-
-          emailForm.classList.add('hidden');
-          codeForm.classList.remove('hidden');
-
-          sendCodeBtn.disabled = false;
-          sendCodeBtn.textContent = 'Gerar código';
-        });
-
-        codeForm.addEventListener('submit', function (e) {
-          e.preventDefault();
-
-          if (!currentCode || Date.now() > codeExpiresAt) {
-            emailMessage.textContent = 'Código expirado. Gere um novo código.';
-            emailMessage.className = 'message error';
-            codeForm.classList.add('hidden');
-            emailForm.classList.remove('hidden');
-            return;
-          }
-
-          var entered = (codeInput.value || '').trim();
-          if (entered !== currentCode) {
-            emailMessage.textContent = 'Código incorreto.';
-            emailMessage.className = 'message error';
-            return;
-          }
-
-          // "Logged in": hide overlay, show Unity game
-          loginOverlay.style.display = 'none';
-          unityContainer.style.display = 'block';
-        });
-
-        backButton.addEventListener('click', function () {
-          codeForm.classList.add('hidden');
-          emailForm.classList.remove('hidden');
-          emailMessage.textContent = '';
-          emailMessage.className = 'message';
-        });
-      })();
-
-      // --------- Original Unity WebGL bootstrapping ---------
       var canvas = document.querySelector("#unity-canvas");
-
-      // Shows a temporary message banner/ribbon for a few seconds, or
-      // a permanent error message on top of the canvas if type=='error'.
-      // If type=='warning', a yellow highlight color is used.
-      // Modify or remove this function to customize the visually presented
-      // way that non-critical warnings and error messages are presented to the
-      // user.
       function unityShowBanner(msg, type) {
         var warningBanner = document.querySelector("#unity-warning");
         function updateBannerVisibility() {
@@ -239,7 +51,6 @@
         }
         updateBannerVisibility();
       }
-
       var buildUrl = "Build";
       var loaderUrl = buildUrl + "/GzipTest.loader.js";
       var config = {
@@ -252,71 +63,34 @@
         productName: "Onboarding",
         productVersion: "3.3",
         showBanner: unityShowBanner,
-        // errorHandler: function(err, url, line) {
-        //    alert("error " + err + " occurred at line " + line);
-        //    // Return 'true' if you handled this error and don't want Unity
-        //    // to process it further, 'false' otherwise.
-        //    return true;
-        // },
       };
-
-      // By default, Unity keeps WebGL canvas render target size matched with
-      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
-      // Set this to false if you want to decouple this synchronization from
-      // happening inside the engine, and you would instead like to size up
-      // the canvas DOM size and WebGL render target sizes yourself.
-      // config.matchWebGLToCanvasSize = false;
-
-      // If you would like all file writes inside Unity Application.persistentDataPath
-      // directory to automatically persist so that the contents are remembered when
-      // the user revisits the site the next time, uncomment the following line:
-      // config.autoSyncPersistentDataPath = true;
-      // This autosyncing is currently not the default behavior to avoid regressing
-      // existing user projects that might rely on the earlier manual
-      // JS_FileSystem_Sync() behavior, but in future Unity version, this will be
-      // expected to change.
-
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Mobile device style: fill the whole browser client area with the game canvas:
-
         var meta = document.createElement('meta');
         meta.name = 'viewport';
         meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
         document.getElementsByTagName('head')[0].appendChild(meta);
         document.querySelector("#unity-container").className = "unity-mobile";
         canvas.className = "unity-mobile";
-
-        // To lower canvas resolution on mobile devices to gain some
-        // performance, uncomment the following line:
-        // config.devicePixelRatio = 1;
-
-
       } else {
-        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
         canvas.style.width = "960px";
         canvas.style.height = "600px";
       }
-
       document.querySelector("#unity-loading-bar").style.display = "block";
-
       var script = document.createElement("script");
       script.src = loaderUrl;
-      script.onload = () => {
-        createUnityInstance(canvas, config, (progress) => {
+      script.onload = function() {
+        createUnityInstance(canvas, config, function(progress) {
           document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
-              }).then((unityInstance) => {
-                document.querySelector("#unity-loading-bar").style.display = "none";
-                document.querySelector("#unity-fullscreen-button").onclick = () => {
-                  unityInstance.SetFullscreen(1);
-                };
-
-              }).catch((message) => {
-                alert(message);
-              });
-            };
-
+        }).then(function(unityInstance) {
+          document.querySelector("#unity-loading-bar").style.display = "none";
+          document.querySelector("#unity-fullscreen-button").onclick = function() {
+            unityInstance.SetFullscreen(1);
+          };
+        }).catch(function(message) {
+          alert(message);
+        });
+      };
       document.body.appendChild(script);
-
     </script>
   </body>
 </html>
