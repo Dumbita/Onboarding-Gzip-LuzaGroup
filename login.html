@@ -108,8 +108,16 @@
     </form>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script>
     (function () {
+      // EmailJS: substitua pelos seus IDs em https://dashboard.emailjs.com
+      var EMAILJS_SERVICE_ID = 'service_aok1gwk';
+      var EMAILJS_TEMPLATE_ID = 'template_xe6gdv8';
+      var EMAILJS_PUBLIC_KEY = 'T5HgV-p0k7sP7bGfs';
+
+      emailjs.init(EMAILJS_PUBLIC_KEY);
+
       var emailForm = document.getElementById('email-form');
       var codeForm = document.getElementById('code-form');
       var emailInput = document.getElementById('email');
@@ -138,10 +146,28 @@
         currentCode = String(Math.floor(100000 + Math.random() * 900000));
         codeExpiresAt = Date.now() + 10 * 60 * 1000;
 
-        emailMessage.textContent = 'Código: ' + currentCode + ' (válido 10 min)';
-        emailMessage.classList.add('success');
-        emailForm.classList.add('hidden');
-        codeForm.classList.remove('hidden');
+        sendCodeBtn.disabled = true;
+        sendCodeBtn.textContent = 'Enviando...';
+
+        // Template usa {{message}} no corpo do e-mail
+        emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+          to_email: email,
+          message: 'Seu código de acesso é: ' + currentCode + '. Válido por 10 minutos.'
+        })
+          .then(function () {
+            emailMessage.textContent = 'Código enviado para seu e-mail. Verifique a caixa de entrada.';
+            emailMessage.classList.add('success');
+            emailForm.classList.add('hidden');
+            codeForm.classList.remove('hidden');
+          })
+          .catch(function (err) {
+            emailMessage.textContent = 'Falha ao enviar e-mail: ' + (err.text || err.status || 'tente de novo.');
+            emailMessage.classList.add('error');
+          })
+          .finally(function () {
+            sendCodeBtn.disabled = false;
+            sendCodeBtn.textContent = 'Gerar código';
+          });
       });
 
       codeForm.addEventListener('submit', function (e) {
