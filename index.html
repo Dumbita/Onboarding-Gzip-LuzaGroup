@@ -8,6 +8,29 @@
     <link rel="stylesheet" href="TemplateData/style.css">
     <style>
       body { margin: 0; font-family: Arial, sans-serif; background: #0b1020; color: #f5f5f5; }
+      .top-actions {
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        z-index: 9999;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .top-actions button {
+        border: 1px solid #3a425a;
+        background: rgba(9, 15, 30, 0.75);
+        color: #c3c8d4;
+        padding: 8px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        backdrop-filter: blur(6px);
+      }
+      .top-actions button:hover {
+        color: #f5f5f5;
+        border-color: #4aa3ff;
+      }
     </style>
   </head>
   <body>
@@ -15,6 +38,24 @@
       if (!sessionStorage.getItem('luza_logged_in')) {
         window.location.replace('login.html');
       }
+    </script>
+
+    <div class="top-actions">
+      <button type="button" id="back-to-menu">Voltar ao menu</button>
+    </div>
+
+    <script>
+      function luzaGoToMenu() {
+        window.location.href = 'menu.html';
+      }
+      // Backwards/alternate name (easy to call from Unity)
+      function goToMenu() {
+        luzaGoToMenu();
+      }
+
+      document.getElementById('back-to-menu').addEventListener('click', function () {
+        luzaGoToMenu();
+      });
     </script>
     <div id="unity-container" class="unity-desktop">
       <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
